@@ -1,0 +1,48 @@
+{
+  "command": "train",
+  "dataset": "C:\\Users\\El Urselles\\Desktop\\fsl_trainer\\datasets_augmented\\colors",
+  "output": "C:\\Users\\El Urselles\\Desktop\\fsl_trainer\\runs\\colors\\augmented_v1",
+  "epochs": 100,
+  "batch_size": 32,
+  "learning_rate": 0.001,
+  "patience": 12,
+  "seed": 42,
+  "class_weights": false,
+  "loader": "packed",
+  "resume_from": null,
+  "tensorflow_version": "2.21.0",
+  "split_counts": {
+    "test": {
+      "blue": 3,
+      "dark": 3,
+      "green": 3,
+      "light": 3,
+      "orange": 3,
+      "red": 3,
+      "violet": 3,
+      "yellow": 3
+    },
+    "train": {
+      "blue": 14,
+      "dark": 14,
+      "green": 15,
+      "light": 14,
+      "orange": 14,
+      "red": 14,
+      "violet": 14,
+      "yellow": 14
+    },
+    "validation": {
+      "blue": 3,
+      "dark": 3,
+      "green": 3,
+      "light": 3,
+      "orange": 3,
+      "red": 3,
+      "violet": 3,
+      "yellow": 3
+    }
+  },
+  "actual_optimizer_learning_rate": 0.0010000000474974513,
+  "data_loader": "packed"
+}

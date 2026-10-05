@@ -1,0 +1,54 @@
+{
+  "command": "train",
+  "dataset": "C:\\Users\\El Urselles\\Desktop\\fsl_trainer\\datasets_augmented\\family",
+  "output": "C:\\Users\\El Urselles\\Desktop\\fsl_trainer\\runs\\family\\augmented_v1",
+  "epochs": 100,
+  "batch_size": 32,
+  "learning_rate": 0.001,
+  "patience": 12,
+  "seed": 42,
+  "class_weights": false,
+  "loader": "packed",
+  "resume_from": null,
+  "tensorflow_version": "2.21.0",
+  "split_counts": {
+    "train": {
+      "auntie": 14,
+      "cousin": 14,
+      "daughter": 14,
+      "father": 14,
+      "grandfather": 12,
+      "grandmother": 14,
+      "mother": 14,
+      "parents": 14,
+      "son": 14,
+      "uncle": 14
+    },
+    "validation": {
+      "auntie": 3,
+      "cousin": 3,
+      "daughter": 3,
+      "father": 3,
+      "grandfather": 3,
+      "grandmother": 3,
+      "mother": 3,
+      "parents": 3,
+      "son": 3,
+      "uncle": 3
+    },
+    "test": {
+      "auntie": 3,
+      "cousin": 3,
+      "daughter": 3,
+      "father": 3,
+      "grandfather": 3,
+      "grandmother": 3,
+      "mother": 3,
+      "parents": 3,
+      "son": 3,
+      "uncle": 3
+    }
+  },
+  "actual_optimizer_learning_rate": 0.0010000000474974513,
+  "data_loader": "packed"
+}

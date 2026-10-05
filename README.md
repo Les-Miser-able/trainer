@@ -1,7 +1,7 @@
 # FSL Conv1D–BiLSTM trainer
 
 For a fresh clone, PWA asset setup, and first-push instructions, see
-[REPOSITORY.md](REPOSITORY.md). Training data and generated models are kept local.
+[REPOSITORY.md](REPOSITORY.md). Trained models are included; training data stays local.
 
 Augmentation development folders and output conventions are documented in
 [augmentation/README.md](augmentation/README.md).
@@ -281,7 +281,7 @@ Use --loader files only to return to the original per-file path. Packed loading 
 
 ## FSL Pocket PWA sample
 
-See [pwa-sample/README.md](pwa-sample/README.md) for the client-side category downloader and camera recognition demo. After dependency setup and model export, start it with `npm start` inside `pwa-sample`. Export trained runs with `pwa-sample/tools/export_model.py`; checkpoints are kept outside Git.
+See [pwa-sample/README.md](pwa-sample/README.md) for the client-side category downloader and camera recognition demo. After dependency setup, start it with `npm start` inside `pwa-sample`. Trained checkpoints and existing browser exports are included. Export additional runs with `pwa-sample/tools/export_model.py`.
 
 
 ## Confusion matrices

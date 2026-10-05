@@ -1,9 +1,10 @@
 # Repository setup
 
 This repository contains the Python trainer, tests, documentation, augmentation
-scaffolding, and PWA application source. Original recordings, prepared datasets,
-training runs, downloaded hand models, exported browser models, browser vendor
-libraries, virtual environments, and local editor settings stay out of Git.
+scaffolding, PWA source, trained Keras checkpoints, their supporting metadata and
+training results, existing browser model exports, and the MediaPipe hand detector.
+Original recordings, prepared datasets, large split manifests, per-sample prediction
+CSVs, browser vendor libraries, virtual environments, and editor settings stay local.
 The PWA source lives in `pwa-sample/dist/`; do not ignore that entire folder.
 
 ## Fresh clone on Windows
@@ -23,9 +24,15 @@ Add your own media to `data/<category>/<gesture>/`, then prepare and train:
 .\.venv\Scripts\python.exe categories.py train --category family --datasets datasets_augmented --run first
 ```
 
-The MediaPipe hand model downloads during raw-media preparation. Source data and
-trained checkpoints must be supplied separately when moving to another machine.
+The MediaPipe hand model and existing trained checkpoints are included. Source
+data must be supplied separately to prepare datasets or retrain on another machine.
 Use a fresh output root/run name when existing outputs are present.
+
+Included runs: `alphabet/{first,optimized,webcam_v2,augmented_v1}`,
+`colors/{first,augmented_v1}`, and `family/augmented_v1`. Each checkpoint ships
+with `classes.json` and `preprocessing.json` for prediction and browser export.
+The PWA catalog currently selects the existing alphabet and colors exports;
+including additional Keras checkpoints does not automatically select/export them.
 
 ## PWA setup
 
@@ -33,14 +40,17 @@ Use a fresh output root/run name when existing outputs are present.
 cd pwa-sample
 npm ci
 npm run setup
-cd ..
-.\.venv\Scripts\python.exe pwa-sample/tools/export_model.py --category family --run runs/family/first
-cd pwa-sample
 npm start
 ```
 
-Setup creates a catalog with all categories unavailable if no catalog exists;
-it preserves existing exports. Export each trained category you want to use.
+Setup preserves the included catalog and exports. If no catalog exists, it creates
+one with categories unavailable. To add the included family checkpoint, run from
+the repository root:
+
+```powershell
+.\.venv\Scripts\python.exe pwa-sample/tools/export_model.py --category family --run runs/family/augmented_v1
+```
+
 Open http://localhost:8080. For website deployment, publish the complete local
 `pwa-sample/dist/` after setup and export, including its Git-ignored assets.
 
@@ -70,5 +80,5 @@ git push -u origin main
 
 Replace `YOUR_REPOSITORY_URL` with your repository's clone URL. Before committing,
 check the staged file list; original media and generated datasets should not
-appear. Root-level npm manifests are legacy local files; use npm only inside
+appear, but trained checkpoints and browser exports should. Root-level npm manifests are legacy local files; use npm only inside
 `pwa-sample/`.

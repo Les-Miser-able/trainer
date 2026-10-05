@@ -10,3 +10,4 @@
 *.png binary
 *.bin binary
 *.task binary
+*.keras binary

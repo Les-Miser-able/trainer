@@ -1,0 +1,9 @@
+Actual / Predicted,blue,dark,green,light,orange,red,violet,yellow
+blue,2,0,0,0,1,0,0,0
+dark,0,0,0,0,0,0,3,0
+green,1,0,0,0,1,0,0,1
+light,0,0,0,0,0,0,3,0
+orange,1,0,0,0,2,0,0,0
+red,2,0,0,0,1,0,0,0
+violet,0,0,0,0,0,0,3,0
+yellow,1,0,0,0,2,0,0,0

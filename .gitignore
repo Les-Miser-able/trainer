@@ -1,8 +1,24 @@
 .venv/
 __pycache__/
 /raw/
-/models/
-/runs/
+/models/*
+!/models/hand_landmarker.task
+
+# Keep trained checkpoints and their supporting metadata/results.
+/runs/**
+!/runs/*/
+!/runs/*/*/
+!/runs/*/*/best.keras
+!/runs/*/*/classes.json
+!/runs/*/*/preprocessing.json
+!/runs/*/*/training_config.json
+!/runs/*/*/model_summary.txt
+!/runs/*/*/test_metrics.json
+!/runs/*/*/history.json
+!/runs/*/*/history.csv
+!/runs/*/*/epoch_times.json
+!/runs/*/*/confusion_matrix*.csv
+!/runs/*/*/confusion_matrix*.png
 *.pyc
 node_modules
 
@@ -27,11 +43,9 @@ htmlcov/
 /datasets_*/
 !/datasets_augmented/
 
-# Browser application source in dist IS tracked; generated assets are not.
-/pwa-sample/dist/models/
-/pwa-sample/dist/shared/
+# Browser source, exported models, detector, and catalog are tracked.
+# Vendor libraries and the shell asset list are recreated by npm run setup.
 /pwa-sample/dist/vendor/
-/pwa-sample/dist/catalog.json
 /pwa-sample/dist/shell-assets.json
 
 # Legacy root npm files only install an unrelated npm package named numpy.

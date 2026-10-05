@@ -1,9 +1,9 @@
 # FSL Pocket — client-side PWA sample
 
-**Fresh clone:** browser libraries and exported models are excluded from Git.
-Run `npm ci` and `npm run setup` in this folder, then export your trained models
-as described below. See [repository setup](../REPOSITORY.md). The included-model
-descriptions below refer to the original local demo, not assets shipped in Git.
+**Fresh clone:** exported models and the shared hand detector are included.
+Run `npm ci` and `npm run setup` in this folder to recreate browser libraries.
+Export additional trained models as described below.
+See [repository setup](../REPOSITORY.md).
 
 Choose a category, download its model, turn on the camera, and recognize a held pose or a two-second gesture. Camera frames and predictions stay in the browser. The server only serves static files.
 
@@ -18,7 +18,7 @@ cd pwa-sample
 npm start
 ```
 
-Open http://localhost:8080. Node.js 22 or newer is recommended. Complete the fresh-clone setup and model export first; later starts can reuse those local assets.
+Open http://localhost:8080. Node.js 22 or newer is recommended. Complete the fresh-clone setup first; later starts can reuse those local assets. Alphabet and colors are already exported.
 
 1. Select Alphabet or Colors.
 2. Press Download model. Progress messages show app setup, model download and hand-detector download.

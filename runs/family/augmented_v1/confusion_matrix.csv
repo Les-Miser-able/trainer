@@ -1,0 +1,11 @@
+Actual / Predicted,auntie,cousin,daughter,father,grandfather,grandmother,mother,parents,son,uncle
+auntie,3,0,0,0,0,0,0,0,0,0
+cousin,3,0,0,0,0,0,0,0,0,0
+daughter,0,0,1,0,0,0,0,0,2,0
+father,1,2,0,0,0,0,0,0,0,0
+grandfather,2,1,0,0,0,0,0,0,0,0
+grandmother,3,0,0,0,0,0,0,0,0,0
+mother,3,0,0,0,0,0,0,0,0,0
+parents,3,0,0,0,0,0,0,0,0,0
+son,0,0,0,0,0,0,0,0,3,0
+uncle,3,0,0,0,0,0,0,0,0,0
