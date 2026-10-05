@@ -1,0 +1,48 @@
+.venv/
+__pycache__/
+/raw/
+/models/
+/runs/
+*.pyc
+node_modules
+
+# Local settings and secrets.
+.vscode/
+.idea/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+Thumbs.db
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Source media and prepared datasets stay local; retain category scaffolding.
+/data/**
+!/data/*/
+!/data/*/.gitkeep
+/datasets/
+/datasets_*/
+!/datasets_augmented/
+
+# Browser application source in dist IS tracked; generated assets are not.
+/pwa-sample/dist/models/
+/pwa-sample/dist/shared/
+/pwa-sample/dist/vendor/
+/pwa-sample/dist/catalog.json
+/pwa-sample/dist/shell-assets.json
+
+# Legacy root npm files only install an unrelated npm package named numpy.
+# Python dependencies use requirements.txt; the PWA has its own npm manifest.
+/package.json
+/package-lock.json
+
+# Generated augmentation artifacts; retain directory scaffolding.
+/augmentation/previews/*
+!/augmentation/previews/.gitkeep
+/augmentation/reports/*
+!/augmentation/reports/.gitkeep
+/datasets_augmented/*
+!/datasets_augmented/.gitkeep

@@ -1,0 +1,10 @@
+{
+  "categories": [
+    {"id": "alphabet", "name": "Alphabet", "available": false},
+    {"id": "colors", "name": "Colors", "available": false},
+    {"id": "family", "name": "Family", "available": false},
+    {"id": "greetings", "name": "Greetings", "available": false},
+    {"id": "numbers", "name": "Numbers", "available": false},
+    {"id": "shapes", "name": "Shapes", "available": false}
+  ]
+}

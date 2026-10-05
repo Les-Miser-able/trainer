@@ -1,0 +1,15 @@
+{
+  "name": "fsl-pocket",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "setup": "node tools/vendor.mjs",
+    "start": "node tools/serve.mjs",
+    "test": "node --test tests/*.test.mjs",
+    "parity": "node tools/parity.mjs"
+  },
+  "dependencies": {
+    "@tensorflow/tfjs": "4.22.0",
+    "@mediapipe/tasks-vision": "0.10.32"
+  }
+}

@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#163e36"><meta name="description" content="Download a category model and recognize FSL gestures on your device.">
+<title>FSL Pocket</title><link rel="manifest" href="./manifest.webmanifest">
+<link rel="icon" href="./icon.svg" type="image/svg+xml"><link rel="stylesheet" href="./style.css">
+</head>
+<body>
+<header><a class="brand" href="./"><span class="mark" aria-hidden="true">✳</span> FSL Pocket</a><span class="connection" id="connection">On-device recognition</span><button id="install" hidden>Install app</button></header>
+<main>
+<section class="heading"><p class="eyebrow">YOUR SIGNING SPACE</p><h1>A gesture.<br>A little understanding.</h1><p>Choose a category. Save its model. Try a sign.</p></section>
+<div class="workspace">
+<section class="panel library" aria-labelledby="library-title">
+<div class="section-title"><span class="step">01</span><h2 id="library-title">Choose your category</h2></div>
+<label for="category">Category</label><select id="category"><option>Loading categories…</option></select>
+<div class="model-card"><div class="model-heading"><span id="category-name">Your model</span><span class="pill" id="model-state">Not downloaded</span></div><p id="model-detail">Models stay on this device after download.</p><p class="small" id="model-size"></p></div>
+<button class="primary" id="download" disabled>Download model <span aria-hidden="true">↓</span></button>
+<progress id="download-progress" hidden aria-label="Model download progress"></progress>
+<button class="quiet" id="remove" disabled>Remove downloaded model</button>
+<div class="privacy"><span aria-hidden="true">◉</span><p>Your camera stays yours.<br><small>Frames are processed locally and are never uploaded.</small></p></div>
+<p id="status" class="status" role="status" aria-live="polite">Loading the model library…</p>
+</section>
+<section class="panel camera-panel" aria-labelledby="camera-title">
+<div class="section-title"><span class="step">02</span><h2 id="camera-title">Try a sign</h2><span class="pill neutral" id="camera-state">Camera off</span></div>
+<div class="viewfinder"><video id="video" autoplay muted playsinline aria-label="Camera preview"></video><canvas id="landmarks" aria-label="Detected hand landmarks"></canvas><div id="camera-placeholder"><span class="hand-icon" aria-hidden="true">✋</span><p>A little space for your hands.</p><small>Download a model, then turn on your camera.</small></div><span class="recording" id="recording" hidden>● Recording gesture</span></div>
+<div class="camera-controls"><button id="camera" disabled>Turn on camera</button><button id="stop" class="quiet" disabled>Stop camera</button></div>
+<div class="recognize-controls"><button class="primary" id="pose" disabled>Recognize held pose</button><button id="gesture" disabled>Record 2-second gesture</button></div>
+<div class="camera-controls"><button id="live" disabled>Start live alphabet</button><button id="stop-live" disabled>Pause live</button></div>
+<p id="hand-detail" class="small">Landmarks appear when recognizing a sign.</p>
+<p class="small">Live mode recognizes held poses. This alphabet checkpoint was trained only on still images, including J/Z; moving-letter accuracy is not established.</p>
+<details><summary>Measure webcam accuracy</summary><p>Choose the letter you are signing, then save one trial. Include mistakes and uncertain results. Reposition between trials. Results stay in this session until downloaded.</p><label for="expected">Actual letter</label><select id="expected"></select><div class="camera-controls"><button id="save-trial" disabled>Save labeled trial</button><button id="export-trials">Download test results</button></div><p id="trial-summary">No webcam trials saved in this session.</p></details>
+<p class="small">Hold a static sign steady, or record its full movement. Keep both hands in view when needed.</p>
+</section>
+</div>
+<section class="panel result-panel" aria-labelledby="result-title"><div><p class="eyebrow" id="result-title">RECOGNITION</p><div class="prediction" id="prediction">Ready when you are.</div><p id="result-note">Your result will appear here.</p></div><ol id="alternatives" aria-label="Top model predictions"></ol></section>
+<footer>FSL Pocket · Client-side sample <span>Predictions may be incorrect. Check the sign before relying on it.</span></footer>
+</main>
+<script src="./vendor/tf.min.js"></script><script type="module" src="./app.js"></script>
+</body></html>
