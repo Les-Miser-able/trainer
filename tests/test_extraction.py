@@ -8,8 +8,9 @@ from types import SimpleNamespace as NS
 import unittest
 from unittest.mock import patch
 import numpy as np
-import extraction as e
-import trainer as t
+from fsl_trainer.preparation import extraction as e
+from fsl_trainer.preparation.pipeline import prepare
+from fsl_trainer.preparation.dataset import inspect_dataset
 
 
 def result(labels):
@@ -74,9 +75,9 @@ class ExtractionTests(unittest.TestCase):
                     pass
             args = argparse.Namespace(source=str(raw), output=str(root/"out"), groups=None,
                                       validation=0.15, test=0.15, seed=42, static_variants=8, jitter=0.0075)
-            with patch("extraction.Extractor", FakeExtractor), contextlib.redirect_stdout(io.StringIO()):
-                t.prepare(args)
-            manifest, _, counts = t.inspect_dataset(root/"out")
+            with patch("fsl_trainer.preparation.extraction.Extractor", FakeExtractor), contextlib.redirect_stdout(io.StringIO()):
+                prepare(args)
+            manifest, _, counts = inspect_dataset(root/"out")
             self.assertEqual(len(manifest), 35)
             self.assertEqual(sum(counts[s]["A"] for s in counts), 32)
             first = [r for r in manifest if "one.rf." in r["source"]]

@@ -5,7 +5,9 @@ import os
 from pathlib import Path
 import tempfile
 import numpy as np
-from progress import Stage
+from fsl_trainer.common import Stage, save_json
+from fsl_trainer.paths import CACHE
+from fsl_trainer.preparation.dataset import inspect_dataset
 
 SPLITS = ("train", "validation", "test")
 VERSION = 1
@@ -46,8 +48,7 @@ def close_arrays(arrays):
             array._mmap.close()
 
 
-def open_cache(root):
-    from trainer import inspect_dataset, save_json
+def open_cache(root, cache_root=None):
     root = Path(root).resolve()
     manifest_bytes = (root / "manifest.json").read_bytes()
     preprocessing_bytes = (root / "preprocessing.json").read_bytes()
@@ -64,7 +65,7 @@ def open_cache(root):
     fingerprint = hashlib.sha256(manifest_bytes + preprocessing_bytes +
                                  json.dumps(before, sort_keys=True).encode() +
                                  str(VERSION).encode()).hexdigest()
-    cache_root = root / "_training_cache"
+    cache_root = Path(cache_root) if cache_root is not None else CACHE
     cache = cache_root / fingerprint
     marker = cache / "cache.json"
     if marker.is_file():

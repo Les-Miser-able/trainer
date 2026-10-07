@@ -5,7 +5,7 @@ from pathlib import Path
 import tempfile
 import unittest
 from unittest.mock import patch
-import categories as c
+from fsl_trainer import categories as c
 
 
 class CategoryTests(unittest.TestCase):
@@ -70,7 +70,7 @@ class CategoryTests(unittest.TestCase):
             root = Path(temp)
             self.source(root, "alphabet")
             self.source(root, "numbers")
-            with patch("categories.subprocess.run", side_effect=[
+            with patch("fsl_trainer.categories.subprocess.run", side_effect=[
                 argparse.Namespace(returncode=1), argparse.Namespace(returncode=0)]) as run:
                 with contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
                     with self.assertRaisesRegex(RuntimeError, "alphabet"):

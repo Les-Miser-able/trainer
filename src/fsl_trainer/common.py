@@ -1,4 +1,6 @@
-"""Periodic console status for long preparation stages (stderr, flushed)."""
+"""Shared feature constants, JSON output, and console progress."""
+import json
+from pathlib import Path
 import sys
 import threading
 import time
@@ -44,3 +46,13 @@ def progress(items, label):
         for item in items:
             yield item
             stage.advance()
+
+
+FRAMES, FEATURES = 32, 128
+LAYOUT = ["left_xyz_landmarks_0_to_20", "right_xyz_landmarks_0_to_20",
+          "left_present", "right_present"]
+
+
+def save_json(path, value):
+    Path(path).write_text(json.dumps(value, indent=2), encoding="utf-8")
+
