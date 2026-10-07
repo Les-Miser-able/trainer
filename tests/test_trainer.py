@@ -1,4 +1,4 @@
-"""Run: python -m unittest -v test_trainer
+"""Run: python -m unittest -v tests.test_trainer
 TensorFlow tests are skipped only when TensorFlow is not installed.
 """
 import argparse
@@ -10,7 +10,13 @@ from pathlib import Path
 import tempfile
 import unittest
 import numpy as np
-import trainer as t
+from fsl_trainer.common import save_json
+from fsl_trainer.preparation.pipeline import prepare
+from fsl_trainer.preparation.dataset import inspect_dataset
+from fsl_trainer.preparation.sequences import load_sequence, resample, synthetic_sequence
+from fsl_trainer.preparation.split import split_sources
+from fsl_trainer.training.evaluation import evaluation
+from fsl_trainer.models.network import tensorflow, build_model
 
 
 def pose(length=1, offset=0.0, both=False):
@@ -28,7 +34,7 @@ class PreprocessingTests(unittest.TestCase):
         for length in (2, 7, 32, 57):
             x = pose(length)
             x[:, 0] = np.linspace(0, 1, length)
-            out = t.resample(x)
+            out = resample(x)
             self.assertEqual(out.shape, (32, 128))
             self.assertEqual(out.dtype, np.float32)
             np.testing.assert_allclose(out[:, 0], np.linspace(0, 1, 32), atol=1e-6)
@@ -37,18 +43,18 @@ class PreprocessingTests(unittest.TestCase):
     def test_presence_stays_binary_and_absent_zero(self):
         x = pose(2)
         x[1] = 0
-        out = t.resample(x)
+        out = resample(x)
         self.assertTrue(np.isin(out[:, 126:], [0, 1]).all())
         self.assertTrue((out[out[:, 126] == 0, :63] == 0).all())
         self.assertTrue((out[:, 63:126] == 0).all())
 
     def test_static_repeat(self):
         x = pose()
-        np.testing.assert_array_equal(t.resample(x), np.repeat(x, 32, axis=0))
+        np.testing.assert_array_equal(resample(x), np.repeat(x, 32, axis=0))
 
     def test_independent_gaussian_jitter(self):
         x = pose(both=True)
-        out = t.synthetic_sequence(x, np.random.default_rng(12))
+        out = synthetic_sequence(x, np.random.default_rng(12))
         noise = out[:, :126] - x[:, :126]
         self.assertGreater(noise.std(), 0.0065)
         self.assertLess(noise.std(), 0.0085)
@@ -56,10 +62,10 @@ class PreprocessingTests(unittest.TestCase):
         self.assertTrue((noise.std(axis=0) > 0).all())
         self.assertLess(abs(float(np.corrcoef(noise[:-1].ravel(), noise[1:].ravel())[0, 1])), 0.08)
         np.testing.assert_array_equal(out[:, 126:], np.ones((32, 2)))
-        np.testing.assert_array_equal(out, t.synthetic_sequence(x, np.random.default_rng(12)))
+        np.testing.assert_array_equal(out, synthetic_sequence(x, np.random.default_rng(12)))
 
     def test_jitter_preserves_missing_hand(self):
-        out = t.synthetic_sequence(pose(), np.random.default_rng(5))
+        out = synthetic_sequence(pose(), np.random.default_rng(5))
         self.assertTrue((out[:, 63:126] == 0).all())
         self.assertTrue((out[:, 127] == 0).all())
         self.assertTrue((out[:, 126] == 1).all())
@@ -74,16 +80,16 @@ class PreprocessingTests(unittest.TestCase):
             for value in cases:
                 np.save(path, value)
                 with self.assertRaises(ValueError):
-                    t.load_sequence(path)
+                    load_sequence(path)
 
     def test_group_splits(self):
         records = [{"label": label, "group": f"signer{i}", "source": f"{label}/{i}.npy"}
                    for label in ("A", "J") for i in range(10)]
-        split = t.split_sources(records, 0.15, 0.15, 42)
+        split = split_sources(records, 0.15, 0.15, 42)
         self.assertEqual(set(split.values()), {"train", "validation", "test"})
-        self.assertEqual(split, t.split_sources(records, 0.15, 0.15, 42))
+        self.assertEqual(split, split_sources(records, 0.15, 0.15, 42))
         with self.assertRaises(ValueError):
-            t.split_sources([{"label": "A", "group": "one"}], 0.15, 0.15, 42)
+            split_sources([{"label": "A", "group": "one"}], 0.15, 0.15, 42)
 
     def test_prepare_end_to_end_and_leakage_detection(self):
         with tempfile.TemporaryDirectory() as folder:
@@ -99,8 +105,8 @@ class PreprocessingTests(unittest.TestCase):
                                       groups=None, validation=0.15, test=0.15,
                                       seed=42, static_variants=8, jitter=0.0075)
             with contextlib.redirect_stdout(io.StringIO()):
-                t.prepare(args)
-            manifest, classes, stats = t.inspect_dataset(root / "dataset")
+                prepare(args)
+            manifest, classes, stats = inspect_dataset(root / "dataset")
             self.assertEqual(classes, ["A", "J"])
             self.assertEqual(len(manifest), 45)
             summary = json.loads((root / "dataset" / "augmentation_summary.json").read_text())
@@ -119,17 +125,17 @@ class PreprocessingTests(unittest.TestCase):
                 self.assertEqual({r["variant_of"] for r in siblings}, {source})
                 self.assertEqual(len(siblings), 8 if source.startswith("A/") else 1)
             with self.assertRaises(ValueError):
-                t.prepare(args)
+                prepare(args)
             # Corrupt source grouping across splits: inspection must reject it.
             first = manifest[0]
             other = next(r for r in manifest if r["split"] != first["split"])
             other["variant_of"] = first["variant_of"]
-            t.save_json(root / "dataset" / "manifest.json", manifest)
+            save_json(root / "dataset" / "manifest.json", manifest)
             with self.assertRaisesRegex(ValueError, "Data leakage"):
-                t.inspect_dataset(root / "dataset")
+                inspect_dataset(root / "dataset")
 
     def test_metrics(self):
-        report = t.evaluation(np.array([0, 1, 1]), np.array([[1, 0], [1, 0], [0, 1]]), ["A", "J"])
+        report = evaluation(np.array([0, 1, 1]), np.array([[1, 0], [1, 0], [0, 1]]), ["A", "J"])
         self.assertAlmostEqual(report["accuracy"], 2/3)
         self.assertEqual(report["confusion_matrix_rows_true_columns_predicted"], [[1, 0], [1, 1]])
 
@@ -137,9 +143,9 @@ class PreprocessingTests(unittest.TestCase):
 @unittest.skipUnless(importlib.util.find_spec("tensorflow"), "TensorFlow is not installed")
 class TensorFlowTests(unittest.TestCase):
     def test_architecture_training_and_export(self):
-        tf = t.tensorflow()
+        tf = tensorflow()
         tf.keras.utils.set_random_seed(42)
-        model = t.build_model(3)
+        model = build_model(3)
         self.assertEqual(model.input_shape, (None, 32, 128))
         self.assertEqual(model.output_shape, (None, 3))
         self.assertEqual(model.count_params(), 486083)
@@ -155,7 +161,7 @@ class TensorFlowTests(unittest.TestCase):
         self.assertEqual([x.forward_layer.units for x in rnn], [128, 64])
         self.assertTrue(rnn[0].return_sequences)
         self.assertFalse(rnn[1].return_sequences)
-        x = np.stack([t.synthetic_sequence(pose(both=True), np.random.default_rng(i)) for i in range(3)])
+        x = np.stack([synthetic_sequence(pose(both=True), np.random.default_rng(i)) for i in range(3)])
         result = model.train_on_batch(x, np.array([0, 1, 2]))
         self.assertTrue(np.isfinite(result).all())
         predicted = model(x, training=False).numpy()

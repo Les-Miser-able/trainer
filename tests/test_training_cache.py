@@ -7,8 +7,10 @@ import tempfile
 import unittest
 from unittest.mock import patch
 import numpy as np
-import trainer as t
-import training_cache as c
+from fsl_trainer.common import save_json
+from fsl_trainer.preparation.pipeline import prepare
+from fsl_trainer.preparation.sequences import load_sequence
+from fsl_trainer.training import cache as c
 
 
 class CacheTests(unittest.TestCase):
@@ -24,13 +26,13 @@ class CacheTests(unittest.TestCase):
         args = argparse.Namespace(source=str(root/"raw"), output=str(root/"dataset"),
                                   groups=None, validation=0.15, test=0.15, seed=42,
                                   static_variants=8, jitter=0.0075)
-        t.prepare(args)
+        prepare(args)
         return root/"dataset"
 
     def test_exact_values_labels_coverage_and_cache_reuse(self):
         with tempfile.TemporaryDirectory() as temp, contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
             root = self.make_dataset(Path(temp))
-            cache, manifest, classes, stats = c.open_cache(root)
+            cache, manifest, classes, stats = c.open_cache(root, cache_root=root.parent/"cache")
             for split in c.SPLITS:
                 rows = [r for r in manifest if r["split"] == split]
                 parts = list(c.batches(cache, split, 7))
@@ -38,42 +40,42 @@ class CacheTests(unittest.TestCase):
                 y = np.concatenate([part[1] for part in parts])
                 self.assertEqual(len(x), len(rows))
                 for i, row in enumerate(rows):
-                    np.testing.assert_array_equal(x[i], t.load_sequence(root/row["path"], fixed=True))
+                    np.testing.assert_array_equal(x[i], load_sequence(root/row["path"], fixed=True))
                     self.assertEqual(y[i], classes.index(row["label"]))
                 shuffled = list(c.batches(cache, split, 7, np.random.default_rng(42)))
                 pairs = [(a.tobytes(), int(b)) for xx, yy in shuffled for a,b in zip(xx,yy)]
                 self.assertCountEqual(pairs, [(a.tobytes(), int(b)) for a,b in zip(x,y)])
             # A cache hit does not open or validate individual sequence arrays again.
-            with patch("trainer.inspect_dataset", side_effect=AssertionError("unexpected validation")):
-                reused, _, _, _ = c.open_cache(root)
+            with patch("fsl_trainer.training.cache.inspect_dataset", side_effect=AssertionError("unexpected validation")):
+                reused, _, _, _ = c.open_cache(root, cache_root=root.parent/"cache")
             self.assertEqual(reused, cache)
 
     def test_source_change_invalidates_cache_and_bad_data_rejected(self):
         with tempfile.TemporaryDirectory() as temp, contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
             root = self.make_dataset(Path(temp))
-            first, manifest, _, _ = c.open_cache(root)
+            first, manifest, _, _ = c.open_cache(root, cache_root=root.parent/"cache")
             path = root/manifest[0]["path"]
             x = np.load(path)
             x[0,0] += 0.02
             np.save(path,x)
-            second, _, _, _ = c.open_cache(root)
+            second, _, _, _ = c.open_cache(root, cache_root=root.parent/"cache")
             self.assertNotEqual(first,second)
             x[0,0] = np.nan
             np.save(path,x)
             with self.assertRaises(ValueError):
-                c.open_cache(root)
-            self.assertFalse(list((root/"_training_cache").glob("building-*")))
+                c.open_cache(root, cache_root=root.parent/"cache")
+            self.assertFalse(list((root.parent/"cache").glob("building-*")))
 
     def test_manifest_leakage_invalidates_cache(self):
         with tempfile.TemporaryDirectory() as temp, contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(io.StringIO()):
             root = self.make_dataset(Path(temp))
-            _, manifest, _, _ = c.open_cache(root)
+            _, manifest, _, _ = c.open_cache(root, cache_root=root.parent/"cache")
             first = manifest[0]
             other = next(r for r in manifest if r["split"] != first["split"])
             other["group"] = first["group"]
-            t.save_json(root/"manifest.json",manifest)
+            save_json(root/"manifest.json",manifest)
             with self.assertRaisesRegex(ValueError, "Data leakage"):
-                c.open_cache(root)
+                c.open_cache(root, cache_root=root.parent/"cache")
 
 
 if __name__ == "__main__":

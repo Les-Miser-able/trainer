@@ -8,8 +8,9 @@ import sys
 import numpy as np
 
 ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(ROOT))
-from trainer import build_model, tensorflow
+sys.path.insert(0, str(ROOT / "src"))
+from fsl_trainer.models.network import build_model, tensorflow
+from fsl_trainer.paths import HAND_MODEL
 
 
 def normalized(config):
@@ -24,7 +25,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--category", required=True)
     parser.add_argument("--run", required=True, type=Path)
-    parser.add_argument("--hand-model", type=Path, default=ROOT/"models"/"hand_landmarker.task")
+    parser.add_argument("--hand-model", type=Path, default=HAND_MODEL)
     parser.add_argument("--site", type=Path, default=ROOT/"pwa-sample"/"dist")
     args = parser.parse_args()
     if not args.category or any(c not in "abcdefghijklmnopqrstuvwxyz0123456789_-" for c in args.category):

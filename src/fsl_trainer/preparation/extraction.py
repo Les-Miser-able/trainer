@@ -2,7 +2,7 @@
 import argparse
 import csv
 from contextlib import contextmanager
-from progress import Stage, progress
+from fsl_trainer.common import Stage, progress
 from datetime import datetime
 import hashlib
 import json
@@ -17,7 +17,7 @@ IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png", ".bmp", ".webp", ".tif", ".tiff"}
 VIDEO_EXTENSIONS = {".mp4", ".avi", ".mov", ".mkv", ".webm", ".m4v"}
 SUPPORTED = IMAGE_EXTENSIONS | VIDEO_EXTENSIONS | {".npy"}
 MODEL_URL = "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task"
-DEFAULT_MODEL = Path(__file__).resolve().parent / "models" / "hand_landmarker.task"
+from fsl_trainer.paths import HAND_MODEL as DEFAULT_MODEL
 
 
 def source_files(folder):
@@ -172,7 +172,9 @@ def temporary_landmarks():
 
 def prepare_media(args, prepare_landmarks):
     """Stage extraction, then reuse the tested splitter and repeat+jitter pipeline."""
-    from trainer import load_sequence, save_json, inspect_dataset, save_augmentation_summary
+    from .sequences import load_sequence
+    from .dataset import inspect_dataset, save_augmentation_summary
+    from fsl_trainer.common import save_json
     source, output = Path(args.source).resolve(), Path(args.output).resolve()
     if source == output or source in output.parents or output in source.parents:
         raise ValueError("Source and output must be separate, non-nested directories")

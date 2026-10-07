@@ -1,8 +1,6 @@
 .venv/
 __pycache__/
 /raw/
-/models/*
-!/models/hand_landmarker.task
 
 # Keep trained checkpoints and their supporting metadata/results.
 /runs/**
@@ -35,13 +33,20 @@ Thumbs.db
 .coverage
 htmlcov/
 
-# Source media and prepared datasets stay local; retain category scaffolding.
+# Source media, prepared datasets, and caches stay local; keep scaffolding.
 /data/**
-!/data/*/
-!/data/*/.gitkeep
-/datasets/
-/datasets_*/
-!/datasets_augmented/
+!/data/raw/
+!/data/raw/*/
+!/data/raw/*/.gitkeep
+!/data/processed/
+!/data/processed/default/
+!/data/processed/default/.gitkeep
+!/data/processed/augmented/
+!/data/processed/augmented/.gitkeep
+!/data/cache/
+!/data/cache/.gitkeep
+*.egg-info/
+build/
 
 # Browser source, exported models, detector, and catalog are tracked.
 # Vendor libraries and the shell asset list are recreated by npm run setup.
@@ -53,10 +58,8 @@ htmlcov/
 /package.json
 /package-lock.json
 
-# Generated augmentation artifacts; retain directory scaffolding.
-/augmentation/previews/*
-!/augmentation/previews/.gitkeep
-/augmentation/reports/*
-!/augmentation/reports/.gitkeep
-/datasets_augmented/*
-!/datasets_augmented/.gitkeep
+# Generated augmentation artifacts; retain scaffolding.
+/reports/augmentation/previews/*
+!/reports/augmentation/previews/.gitkeep
+/reports/augmentation/reports/*
+!/reports/augmentation/reports/.gitkeep

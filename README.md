@@ -1,19 +1,66 @@
 # FSL Conv1Dâ€“BiLSTM trainer
 
+**New here? Start with [the step-by-step user guide](USER_GUIDE.md)** for setup,
+adding data, training, prediction, and using the camera app.
+
 For a fresh clone, PWA asset setup, and first-push instructions, see
 [REPOSITORY.md](REPOSITORY.md). Trained models are included; training data stays local.
 
 Augmentation development folders and output conventions are documented in
-[augmentation/README.md](augmentation/README.md).
+[configs/augmentation/README.md](configs/augmentation/README.md).
 
 A TensorFlow trainer with automatic hand-landmark extraction from raw images and videos. Existing normalized .npy landmarks are also accepted. Static poses and dynamic gestures use the same (32, 128) input, classifier and saved Keras model. No per-letter special cases.
 
-## Categories: one model for each
-
-Put raw images, videos or normalized .npy landmarks under data/<category>/<gesture>/. Nested folders within a gesture are supported for raw-media preparation.
+## Portable project layout
 
 ```text
-data/
+src/fsl_trainer/      Python package: preparation, training, models, CLI, shared paths
+assets/              MediaPipe hand detector (binary asset, not Python model code)
+data/raw/            Original inputs: <category>/<gesture>/<files>
+data/processed/      Prepared datasets: default/<category> or augmented/<category>
+data/cache/          Disposable packed training arrays
+configs/augmentation/ Reserved augmentation presets and documentation
+reports/augmentation/ Generated previews and reports
+runs/                Checkpoints, logs, metrics, and plots by category/run
+pwa-sample/          Browser app and its browser model exports
+tests/               Python regression and portability tests
+```
+
+Copy raw images, videos, or normalized `.npy` files into
+`data/raw/<category>/<gesture>/`. Preparation preserves those originals.
+There is no upload server or new normalization step.
+
+To move the trainer, copy this project, including the data and runs you need,
+then recreate `.venv` and install with `python -m pip install -e .`.
+Do not copy `.venv` or `node_modules`; recreate PWA dependencies with `npm ci`
+inside `pwa-sample` if you use the browser app. Python 3.12 on Windows CPU is
+the tested environment. An internet connection is needed to install missing dependencies.
+The included detector asset avoids downloading it during ordinary preparation.
+
+Defaults follow the project location, even when commands run from another
+working directory. Explicit relative path flags remain relative to your terminal.
+The root launchers still work; after installation, equivalent package commands are:
+
+```powershell
+python -m fsl_trainer.categories list
+python -m fsl_trainer.categories prepare --category alphabet
+python -m fsl_trainer.categories train --category alphabet --run new_run
+python -m fsl_trainer inspect --dataset data/processed/default/alphabet
+```
+
+Existing datasets and runs are protected from overwrite. For a fresh preparation,
+select an unused output root with `--datasets data/processed/experiment_name`,
+then use that same flag when training. Use a new run name for each training run.
+Existing legacy `_training_cache` folders were preserved inside migrated datasets;
+new caches are created under `data/cache` and may be regenerated.
+Historical absolute paths in reports are provenance, not live path settings.
+
+## Categories: one model for each
+
+Put raw images, videos or normalized .npy landmarks under data/raw/<category>/<gesture>/. Nested folders within a gesture are supported for raw-media preparation.
+
+```text
+data/raw/
   alphabet/
     A/image001.jpg
     B/image001.png
@@ -27,7 +74,7 @@ data/
   family/
 ```
 
-The six named category folders are created. Add the remaining categories as new folders when their names are known; the code supports any number, including eight. Inside each category create folders for the actual gesture labels. For example, alphabet is the model category, and A/B/J are its classes.
+The six named category folders are included as scaffolding. Add the remaining categories as new folders when their names are known; the code supports any number, including eight. Inside each category create folders for the actual gesture labels. For example, alphabet is the model category, and A/B/J are its classes.
 
 Preparation automatically extracts landmarks from JPG/PNG images and MP4 videos (other supported formats below). Each category needs at least two gesture classes and at least three independent source groups per class.
 
@@ -37,11 +84,11 @@ Open a terminal in this folder. Verified with Python 3.12 on Windows CPU; requir
 
 ```powershell
 python -m venv .venv
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install -e .
 .\.venv\Scripts\python.exe categories.py list
 .\.venv\Scripts\python.exe categories.py prepare --category alphabet
 .\.venv\Scripts\python.exe categories.py train --category alphabet --run first
-.\.venv\Scripts\python.exe trainer.py predict --run runs\alphabet\first --sample data\alphabet\A\image001.jpg
+.\.venv\Scripts\python.exe trainer.py predict --run runs\alphabet\first --sample data\raw\alphabet\A\image001.jpg
 ```
 
 To prepare and train every populated category:
@@ -58,8 +105,8 @@ Each category starts a fresh model in a separate process, using the same Conv1Dâ
 Outputs are separate:
 
 ```text
-datasets/alphabet/{train,validation,test}/<gesture>/*.npy
-datasets/numbers/{train,validation,test}/<gesture>/*.npy
+data/processed/default/alphabet/{train,validation,test}/<gesture>/*.npy
+data/processed/default/numbers/{train,validation,test}/<gesture>/*.npy
 runs/alphabet/first/best.keras
 runs/alphabet/first/classes.json
 runs/alphabet/first/test_metrics.json
@@ -68,29 +115,29 @@ runs/numbers/first/classes.json
 runs/numbers/first/test_metrics.json
 ```
 
-Other training artifacts are stored alongside each model. Prediction uses the chosen category's run directory; there is no automatic category classifier. Category defaults resolve relative to categories.py, so commands work from another working directory when you pass the script's full path.
+Other training artifacts are stored alongside each model. Prediction uses the chosen category's run directory; there is no automatic category classifier. Category defaults resolve relative to the project root, so commands work from another working directory when you pass the script's full path.
 
-Existing outputs are protected. Use a new --run name for retraining (omitting it generates a timestamp). To prepare another dataset version use --datasets datasets_v2 on both category prepare and train commands. --data and --runs override the source and model roots.
+Existing outputs are protected. Use a new --run name for retraining (omitting it generates a timestamp). To prepare another dataset version use --datasets data/processed/v2 on both category prepare and train commands. --data and --runs override the source and model roots.
 
 Category preparation supports --static-variants 8, --jitter 0.0075, --validation 0.15, --test 0.15 and --seed 42. For signer/session groups, pass --groups-dir groups with groups/alphabet.csv, groups/numbers.csv, etc. CSV paths are relative to each category, for example A/image001.npy. Each model's split is independent; cross-category signer separation is not imposed.
 
 Training supports --epochs 100, --batch-size 32, --learning-rate 0.001, --patience 12, --seed 42 and --class-weights. Run each command with --help for options.
 
-The original trainer.py prepare/train/inspect commands remain available for one dataset. In the lower-level examples below, raw means one category's source folder, such as data/alphabet.
+The original trainer.py prepare/train/inspect commands remain available for one dataset. In the lower-level examples below, raw means one category's source folder, such as data/raw/alphabet.
 
 ## Raw image and video preparation
 
 The existing prepare commands now detect and process raw media automatically. Install the updated requirements in the Python environment you use for preparation:
 
 ```powershell
-python -m pip install -r requirements.txt
+python -m pip install -e .
 python categories.py prepare --category alphabet
 python categories.py train --category alphabet --run first
 ```
 
 Supported images: .jpg, .jpeg, .png, .bmp, .webp, .tif, .tiff. Supported videos: .mp4, .avi, .mov, .mkv, .webm, .m4v, subject to the installed decoder. Extension matching is case-insensitive. Animated/multipage images are rejected; convert them to video. Other files (including .npz) are listed as ignored in extraction_report.json.
 
-MediaPipe HandLandmarker extracts up to two hands. The official model downloads automatically once into models/hand_landmarker.task; subsequent use is local. You may supply --hand-model PATH for a custom compatible .task asset. Raw media is processed on your machine and is never uploaded.
+MediaPipe HandLandmarker extracts up to two hands. The official model downloads automatically once into assets/hand_landmarker.task; subsequent use is local. You may supply --hand-model PATH for a custom compatible .task asset. Raw media is processed on your machine and is never uploaded.
 
 Images are decoded with EXIF orientation applied and produce one (1,128) vector. Videos use a fresh tracking session per clip, decode every frame, and produce (T,128) before the existing 32-frame interpolation. Supply constant-frame-rate videos: the timeline uses frame index and reported FPS. Unreadable/truncated videos and invalid FPS are rejected. A video with fewer than two decodable frames is rejected rather than treated as a static image.
 
@@ -254,6 +301,12 @@ The suite checks interpolation on shorter/longer recordings, binary presence and
 
 With TensorFlow installed it also checks architecture parameters, runs a training batch, and verifies a saved/reloaded model gives matching predictions. Without TensorFlow that test is explicitly skipped; preprocessing remains usable with NumPy alone.
 
+Portability tests compare preparation against original file hashes and exercise
+the launchers and package commands from a copied folder with spaces in its name.
+For an installed-copy training/resume/prediction/export smoke check, run
+`python tools/verify_portability.py`. It uses temporary fixtures and leaves your
+datasets, runs, and browser exports unchanged. See [VALIDATION.md](VALIDATION.md).
+
 ## Preparation progress messages
 
 Long preparation stages report their name and elapsed time every 10 seconds, with counts and percentages when available. Messages cover source checking, splitting, sequence generation, validation, copying extracted landmarks, and cleanup. Preparation complete is printed only after final validation and cleanup finish. Progress goes to stderr and is flushed immediately.
@@ -261,7 +314,7 @@ Long preparation stages report their name and elapsed time every 10 seconds, wit
 
 ## Optimized training loader
 
-The default --loader packed validates and consolidates existing sequences once into dataset/_training_cache/<fingerprint>/, with one X and y array per split. Packing happens without rerunning raw extraction or generating new jitter variants. Every feature value, label, class order and split is preserved.
+The default --loader packed validates and consolidates existing sequences once into data/cache/<fingerprint>/, with one X and y array per split. Packing happens without rerunning raw extraction or generating new jitter variants. Every feature value, label, class order and split is preserved.
 
 Subsequent epochs open two consolidated arrays per split and read whole batches through memory mapping. This avoids per-sample np.load calls and validation during every epoch. A small index permutation shuffles training examples, and only one batch is prefetched, avoiding the previous 10,000-sequence shuffle buffer. The training architecture, batch-size default, number of samples and optimization objective are unchanged; exact random ordering can differ.
 
@@ -287,7 +340,7 @@ See [pwa-sample/README.md](pwa-sample/README.md) for the client-side category do
 ## Confusion matrices
 After test evaluation, every training run saves `confusion_matrix.png` (counts), `confusion_matrix_normalized.png` (percentages within each actual class), and matching CSV files. Rows are actual classes; columns are predictions. The diagonal contains correct predictions. Blank cells contain zero samples. These results describe the prepared test split, not live webcam accuracy.
 
-Install the updated plotting dependency with `python -m pip install -r requirements.txt` in your training environment. Training commands are unchanged.
+Install the updated plotting dependency with `python -m pip install -e .` in your training environment. Training commands are unchanged.
 
 For a completed run, generate the plots without retraining:
 

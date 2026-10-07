@@ -7,6 +7,16 @@ Original recordings, prepared datasets, large split manifests, per-sample predic
 CSVs, browser vendor libraries, virtual environments, and editor settings stay local.
 The PWA source lives in `pwa-sample/dist/`; do not ignore that entire folder.
 
+Python implementation lives in `src/fsl_trainer`; the root Python files are
+compatibility launchers. Raw inputs live in `data/raw`, prepared datasets in
+`data/processed`, and disposable packed arrays in `data/cache`. Model architecture
+code is separate from the detector binary in `assets` and checkpoints in `runs`.
+See [README.md](README.md#portable-project-layout) for the complete layout.
+
+For an older checkout, `tools/migrate_layout.ps1` performs a collision-checked
+migration and compares file inventories. It supports `-DryRun` and does not
+overwrite destinations. This working copy has already been migrated.
+
 ## Fresh clone on Windows
 
 Install Python 3.12 and Node.js 22 or newer. From the repository root:
@@ -14,14 +24,14 @@ Install Python 3.12 and Node.js 22 or newer. From the repository root:
 ```powershell
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install --upgrade pip
-.\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe -m pip install -e .
 ```
 
-Add your own media to `data/<category>/<gesture>/`, then prepare and train:
+Add your own media to `data/raw/<category>/<gesture>/`, then prepare and train:
 
 ```powershell
-.\.venv\Scripts\python.exe categories.py prepare --category family --datasets datasets_augmented
-.\.venv\Scripts\python.exe categories.py train --category family --datasets datasets_augmented --run first
+.\.venv\Scripts\python.exe categories.py prepare --category family --datasets data/processed/augmented
+.\.venv\Scripts\python.exe categories.py train --category family --datasets data/processed/augmented --run first
 ```
 
 The MediaPipe hand model and existing trained checkpoints are included. Source
